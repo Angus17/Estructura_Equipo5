@@ -3,9 +3,11 @@
 
     INTEGRANTES:
 
-    - Diego Leonardo Alejo Cantu
-    - Axel Gabriel Gutierrez Ruano
+    - Diego Leonardo Alejo Cantu 2013810
+    - Axel Gabriel Gutierrez Ruano 2063628
     - Diego Alonso Villanueva Garcia
+
+    NOTA: Se le adjunta tambien el codigo ejecutable, ya que el codigo es incapaz de compilar en DEV-C++
 
  */
 
@@ -18,7 +20,7 @@
 #include <new>
 #include <chrono>
 
-#ifdef unix
+#if defined( unix ) && !defined(__ANDROID__)
     #include <stdio_ext.h>
     #include <regex>
 #endif
@@ -213,7 +215,17 @@ static void pausar_terminal();
 static void mostrar_mensaje_error();
 
 int main()
-{   
+{
+    #if defined( _WIN32 ) || defined( _WIN64 )
+
+        setlocale(LC_CTYPE, "es_MX");
+
+    #elif defined( unix ) && !defined(__ANDROID__)
+
+        setlocale(LC_CTYPE, "es_MX.UTF-8");
+
+    #endif
+    
     int opcion;
     Lista *lista_pacientes = nullptr;
 
