@@ -47,6 +47,11 @@ class Lista
             return direccion;
         }
 
+        string getStatus() const
+        {
+            return status;
+        }
+
         double getAdeudo() const
         {
             return adeudo;
@@ -70,6 +75,11 @@ class Lista
         void setAdeudo(double &nuevo_adeudo)
         {
             adeudo = nuevo_adeudo;
+        }
+
+        void setStatus(string &nuevo_status)
+        {
+            status = nuevo_status;
         }
 
         void setSiguiente(Lista *nueva_siguiente)
@@ -122,13 +132,60 @@ class Lista
 
         }
 
-        void eliminar_nodo_paciente(Lista *pacientes)
+        void modificar_nodo_paciente( Lista *&pacientes, string &dato_nuevo, const int &opcion, const long int &codigo )
         {
             Lista *auxiliar = pacientes;
 
-            while (auxiliar != nullptr)
+            while ((auxiliar != nullptr) && (auxiliar->codigo != codigo))
+
+                auxiliar = auxiliar->siguiente;
+
+            switch ( opcion )
             {
+                case 1:
+
+                    auxiliar->nombre = dato_nuevo;
+
+                    break;
+
+                case 2:
+
+                    auxiliar->apellidos = dato_nuevo;
+
+                    break;
+
+                case 3:
+
+                    auxiliar->direccion = dato_nuevo;
+
+                    break;
+
+            }
+
+
+        }
+
+        void eliminar_nodo_paciente(Lista *pacientes, string &_nombre)
+        {
+            Lista *auxiliar = pacientes;
+            Lista *anterior = nullptr;
+
+            while ((auxiliar != nullptr) && (auxiliar->nombre != _nombre))
+            {
+                anterior = auxiliar;
+                auxiliar = auxiliar->siguiente;
                 
+            }
+
+            if (anterior == nullptr) // Es el primer nodo
+            {
+                pacientes = pacientes->siguiente;
+                delete auxiliar;
+            }
+            else  // Es el ultimo nodo
+            {
+                anterior->siguiente = auxiliar->siguiente;
+                delete auxiliar;
             }
         }
 
@@ -142,8 +199,13 @@ class Lista
 
 static void dar_alta_pacientes(Lista *&);
 static void modificar_datos_pacientes(Lista *&);
+static void dar_baja_paciente( Lista *& );
 static void pagar_adeudo(Lista *&);
 static bool verificar_codigo(Lista *&,  long int );
+static bool comprobar_existencia_paciente( Lista *&, string *, long int *, const int * );
+
+static bool buscar_pacientes_activos( Lista *& );
+static bool buscar_pacientes_alta( Lista *& );
 
 static void limpiar_buffer_STDIN();
 static void limpiar_pantalla();
@@ -184,6 +246,8 @@ int main()
 
             
         } while ( opcion < 1 || opcion > 6 );
+
+        limpiar_pantalla();
         
         switch ( opcion )
         {
@@ -195,8 +259,15 @@ int main()
 
             case 2:
 
-                modificar_datos_pacientes( lista_pacientes );
+                if ( lista_pacientes != nullptr )
 
+                    modificar_datos_pacientes( lista_pacientes );
+
+                else
+
+                    cout << "No hay datos a modificar porque no hay pacientes registrados. . . ." << endl;
+
+                
             break;
 
             case 3:
@@ -213,13 +284,29 @@ int main()
             break;
 
             case 4:
+                if ( buscar_pacientes_activos( lista_pacientes ) )
+
+                    pagar_adeudo( lista_pacientes );
+
+                else
+
+                    cout << "No hay pacientes activos en el hospital. . . ." << endl;
+
             break;
 
             case 5:
+                if ( buscar_pacientes_alta( lista_pacientes ) )
+
+                    dar_baja_paciente( lista_pacientes );
+
+                else
+
+                    cout << "No hay pacientes dados de alta los cuales eliminar del sistema. . . ." << endl;
+
+                
             break;
 
             case 6:
-                limpiar_pantalla();
                 cout << "Saliendo del programa. . . ." << endl;
                 milliseconds(2500);
             break;
@@ -339,7 +426,223 @@ static void dar_alta_pacientes(Lista *&_pacientes)
 
 static void modificar_datos_pacientes(Lista *&_pacientes)
 {
+    regex patron_direccion("Calle ([a-zA-Z. ]+) #([0-9]{1,4}) Colonia ([a-zA-Z ]+), ([A-Za-z ]+), ([A-Za-z ]+)");
+    regex patron_nombres("([a-zA-Z]+)");
+    regex patron_apellidos("([a-zA-Z]+)? ([a-zA-Z]+)");
 
+    string nombre, apellidos, direccion;
+    bool expresion_valida, paciente_existente;
+
+    int opcion_dato;
+    long int codigo_paciente;
+
+    do
+    {
+        limpiar_pantalla();
+        cout << "Ingrese el codigo del paciente que desea modificar: ";
+        limpiar_buffer_STDIN();
+        cin >> codigo_paciente;
+
+        paciente_existente = comprobar_existencia_paciente( _pacientes, nullptr, &codigo_paciente, nullptr  );
+
+        if ( !paciente_existente )
+        {
+            mostrar_mensaje_error();
+            pausar_terminal();
+        }
+
+    } while ( !paciente_existente );
+    
+
+    do
+    {
+        limpiar_pantalla();
+        cout << "Que dato desea modificar?" << endl;
+        cout << "1. Nombre" << endl;
+        cout << "2. Apellidos" << endl;
+        cout << "3. Direccion" << endl;
+        cout << "4. Salir" << endl;
+        cout << "Opcion: ";
+        limpiar_buffer_STDIN();
+        cin >> opcion_dato;
+
+        if ( opcion_dato < 1 || opcion_dato > 4 )
+
+            mostrar_mensaje_error();
+
+    } while ( opcion_dato < 1 || opcion_dato > 4 );
+
+    switch ( opcion_dato ) 
+    {
+        case 1:
+            do
+            {
+                limpiar_pantalla();
+                cout << "Nombre del paciente: ";
+                limpiar_buffer_STDIN();
+                getline(cin, nombre);
+
+                expresion_valida = regex_search( nombre, patron_nombres );
+
+                if ( !expresion_valida )
+
+                    mostrar_mensaje_error();
+
+            } while ( !expresion_valida );
+
+            _pacientes->modificar_nodo_paciente(_pacientes, nombre, opcion_dato, codigo_paciente);
+            
+        break;
+
+        case 2:
+            do
+            {
+                limpiar_pantalla();
+                cout << "Apellidos del paciente: ";
+                limpiar_buffer_STDIN();
+                getline(cin, apellidos);
+
+                expresion_valida = regex_search(apellidos, patron_apellidos);
+
+                if ( !expresion_valida )
+
+                    mostrar_mensaje_error();
+
+            } while ( !expresion_valida );
+
+            _pacientes->modificar_nodo_paciente(_pacientes, apellidos, opcion_dato, codigo_paciente);
+            
+        break;
+
+        case 3:
+            do
+            {
+                limpiar_pantalla();
+                cout << "Direccion del paciente: ";
+                limpiar_buffer_STDIN();
+                getline(cin, direccion);
+
+                expresion_valida = regex_search(direccion, patron_direccion);
+
+                if ( !expresion_valida )
+
+                    mostrar_mensaje_error();
+
+            } while ( !expresion_valida );
+
+            _pacientes->modificar_nodo_paciente(_pacientes, direccion, opcion_dato, codigo_paciente);
+            
+        break;
+    }
+
+    if ( opcion_dato != 4 )
+
+        cout << "Los cambios se han guardado correctamente!" << endl;
+
+}
+
+static void dar_baja_paciente( Lista *&_pacientes )
+{
+    regex patron_nombres("([a-zA-Z]+)");
+    string nombre_paciente;
+    bool expresion_valida;
+    const int bandera_nombre = 1;
+
+    do
+    {
+        cout << "Escribe el nombre del paciente a dar de baja: ";
+        limpiar_buffer_STDIN();
+        getline(cin, nombre_paciente);
+        expresion_valida = regex_search(nombre_paciente, patron_nombres);
+
+        if ( !expresion_valida )
+
+            mostrar_mensaje_error();
+
+    } while( !expresion_valida );
+    
+    if ( comprobar_existencia_paciente( _pacientes, &nombre_paciente, nullptr, &bandera_nombre) )
+    {
+        Lista *auxiliar = _pacientes;
+
+        while (auxiliar->nombre != nombre_paciente)
+
+            auxiliar = auxiliar->getSiguiente();
+
+        _pacientes->eliminar_nodo_paciente( _pacientes, auxiliar->nombre );
+    }
+    else
+
+        cout << "No se encontro el paciente con ese nombre, OPERACION CANCELADA . . . ." << endl;
+
+}
+
+static bool comprobar_existencia_paciente( Lista *&_pacientes, string *_nombre_paciente, long int *codigo ,const int *opcion_nombre )
+{
+    Lista *auxiliar = _pacientes;
+
+    if (opcion_nombre != nullptr ) // Buscar al paciente por su nombre
+    {
+        while (auxiliar != nullptr)
+        {
+            if (auxiliar->nombre == *_nombre_paciente)
+
+                return true;
+
+            auxiliar = auxiliar->getSiguiente();
+        }
+        
+    }
+    else // Buscar al paciente por su codigo unico
+    {
+        while (auxiliar != nullptr)
+        {
+            if (auxiliar->getCodigo() == *codigo)
+
+                return true;
+
+            auxiliar = auxiliar->getSiguiente();
+        }
+    }
+
+    return false;
+}
+
+static void pagar_adeudo( Lista *&_pacientes )
+{
+    regex patron_nombres("([a-zA-Z]+)");
+    string nombre_paciente;
+    bool expresion_valida;
+    const int bandera_nombre = 1;
+
+    do
+    {
+        cout << "Escribe el nombre del paciente al que quieres pagar el adeudo: ";
+        limpiar_buffer_STDIN();
+        getline(cin, nombre_paciente);
+        expresion_valida = regex_search(nombre_paciente, patron_nombres);
+
+        if (!expresion_valida )
+
+            mostrar_mensaje_error();
+
+    } while (!expresion_valida );
+
+    if ( comprobar_existencia_paciente( _pacientes, &nombre_paciente, nullptr, &bandera_nombre) )
+    {
+        Lista *auxiliar = _pacientes;
+
+        while (auxiliar->nombre != nombre_paciente)
+        {
+            auxiliar = auxiliar->getSiguiente();
+        }
+
+        double adeudo_nuevo = 0;
+        string status_nuevo = "Alta";
+
+        auxiliar->setAdeudo(adeudo_nuevo);
+        auxiliar->setStatus(status_nuevo);
+    }
 
 }
 
@@ -360,6 +663,45 @@ static bool verificar_codigo(Lista *&_pacientes, long int _codigo_recibido)
     }
 
     return true;
+}
+
+static bool buscar_pacientes_activos( Lista *&_pacientes )
+{
+    Lista *auxiliar = _pacientes;
+
+    if (auxiliar != nullptr)
+    {
+        while (auxiliar!= nullptr)
+        {
+            if (auxiliar->getStatus() == "Activo")
+
+                return true;
+
+            auxiliar = auxiliar->getSiguiente();
+        }
+    }
+
+    return false;
+
+}
+
+static bool buscar_pacientes_alta( Lista *&_pacientes )
+{
+    Lista *auxiliar = _pacientes;
+
+    if (auxiliar != nullptr)
+    {
+        while (auxiliar!= nullptr)
+        {
+            if (auxiliar->getStatus() == "Alta")
+
+                return true;
+
+            auxiliar = auxiliar->getSiguiente();
+        }
+    }
+
+    return false;
 }
 
 static void limpiar_buffer_STDIN()
