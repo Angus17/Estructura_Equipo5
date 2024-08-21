@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cstring>
+#include <regex>
 #include <clocale>
 #include <string>
 #include <new>
@@ -22,7 +23,6 @@
 
 #if defined( unix ) && !defined(__ANDROID__)
     #include <stdio_ext.h>
-    #include <regex>
 #endif
 
 using namespace std;
@@ -167,7 +167,7 @@ class Lista
 
         }
 
-        void eliminar_nodo_paciente(Lista *pacientes, string &_nombre)
+        void eliminar_nodo_paciente(Lista *&pacientes, string &_nombre)
         {
             Lista *auxiliar = pacientes;
             Lista *anterior = nullptr;
@@ -184,7 +184,7 @@ class Lista
                 pacientes = pacientes->siguiente;
                 delete auxiliar;
             }
-            else  // Es el ultimo nodo
+            else  // Es el ultimo nodo o cualquiera que no es el primero
             {
                 anterior->siguiente = auxiliar->siguiente;
                 delete auxiliar;
@@ -237,16 +237,16 @@ int main()
         {
             limpiar_pantalla();
 
-            cout << "=================================================================" << endl;
-            cout << "MENU DE HOSPITAL\n\n" << endl;
-            cout << "1. Alta Pacientes" << endl;
-            cout << "2. Modificacion de datos de paciente" << endl;
-            cout << "3. Mostrar Pacientes" << endl;
-            cout << "4. Pagar adeudo" << endl;
-            cout << "5. Eliminar Paciente" << endl;
-            cout << "6. Salir" << endl;
-            cout << "=================================================================" << endl;
-            cout << "Selecciona una opcion: ";
+            cout << "\t\t=================================================================\n" << endl;
+            cout << "\t\t\t\tMENÚ DE HOSPITAL\n\n" << endl;
+            cout << "\t\t\t\t1. Alta Pacientes" << endl;
+            cout << "\t\t\t\t2. Modificación de datos de paciente" << endl;
+            cout << "\t\t\t\t3. Mostrar Pacientes" << endl;
+            cout << "\t\t\t\t4. Pagar adeudo" << endl;
+            cout << "\t\t\t\t5. Eliminar Paciente" << endl;
+            cout << "\t\t\t\t6. Salir\n" << endl;
+            cout << "\t\t=================================================================\n" << endl;
+            cout << "\t\t\t\tSelecciona una opción: ";
 
             limpiar_buffer_STDIN();
 
@@ -335,9 +335,9 @@ int main()
 
 static void dar_alta_pacientes(Lista *&_pacientes)
 {
-    regex patron_direccion("Calle ([a-zA-Z. ]+) #([0-9]{1,4}) Colonia ([a-zA-Z ]+), ([A-Za-z ]+), ([A-Za-z ]+)");
-    regex patron_nombres("([a-zA-Z]+)");
-    regex patron_apellidos("([a-zA-Z]+)? ([a-zA-Z]+)");
+    regex patron_direccion("Calle ([a-zA-ZÁ-Ý\u00f1\u00d1. ]+) #([0-9]{1,4}) Colonia ([a-zA-ZÁ-Ý\u00f1\u00d1 ]+), ([A-Za-zÁ-Ý\u00f1\u00d1 ]+), ([A-Za-zÁ-Ý\u00f1\u00d1 ]+)");
+    regex patron_nombres("([a-zA-ZÁ-Ý\u00f1\u00d1]+)");
+    regex patron_apellidos("([a-zA-ZÁ-Ý\u00f1\u00d1]+)? ([a-zA-ZÁ-Ý\u00f1\u00d1]+)");
 
     string nombre, apellidos, direccion, status;
     long int codigo;
@@ -381,7 +381,9 @@ static void dar_alta_pacientes(Lista *&_pacientes)
     do
     {
         limpiar_pantalla();
-        cout << "Direccion del paciente: ";
+        cout << "Dirección del paciente \n Ejemplo: " << endl;
+        cout << "Calle Alameda #123 Colonia San Francisco, Cuauhtémoc, Ciudad de México" << endl;
+        cout << ": ";
         limpiar_buffer_STDIN();
         getline(cin, direccion);
 
@@ -411,7 +413,7 @@ static void dar_alta_pacientes(Lista *&_pacientes)
         }
         else
         {
-            cout << "Codigo del paciente: " << codigo << " generado exitosamente!" << endl;
+            cout << "Código del paciente: " << codigo << " generado exitosamente!" << endl;
             pausar_terminal();
         }
         
@@ -434,13 +436,16 @@ static void dar_alta_pacientes(Lista *&_pacientes)
     status = "Activo";
 
     _pacientes->insertar_nodo_paciente(_pacientes, nombre, apellidos, codigo, direccion, status, adeudo);
+    
+    limpiar_pantalla();
+    cout << "Paciente dado de alta exitosamente!" << endl;
 }
 
 static void modificar_datos_pacientes(Lista *&_pacientes)
 {
-    regex patron_direccion("Calle ([a-zA-Z. ]+) #([0-9]{1,4}) Colonia ([a-zA-Z ]+), ([A-Za-z ]+), ([A-Za-z ]+)");
-    regex patron_nombres("([a-zA-Z]+)");
-    regex patron_apellidos("([a-zA-Z]+)? ([a-zA-Z]+)");
+    regex patron_direccion("Calle ([a-zA-ZÁ-Ý\u00f1\u00d1. ]+) #([0-9]{1,4}) Colonia ([a-zA-ZÁ-Ý\u00f1\u00d1 ]+), ([A-Za-zÁ-Ý\u00f1\u00d1 ]+), ([A-Za-zÁ-Ý\u00f1\u00d1 ]+)");
+    regex patron_nombres("([a-zA-ZÁ-Ý\u00f1\u00d1]+)");
+    regex patron_apellidos("([a-zA-ZÁ-Ý\u00f1\u00d1]+)? ([a-zA-ZÁ-Ý\u00f1\u00d1]+)");
 
     string nombre, apellidos, direccion;
     bool expresion_valida, paciente_existente;
@@ -451,7 +456,7 @@ static void modificar_datos_pacientes(Lista *&_pacientes)
     do
     {
         limpiar_pantalla();
-        cout << "Ingrese el codigo del paciente que desea modificar: ";
+        cout << "Ingrese el código del paciente que desea modificar: ";
         limpiar_buffer_STDIN();
         cin >> codigo_paciente;
 
@@ -469,10 +474,10 @@ static void modificar_datos_pacientes(Lista *&_pacientes)
     do
     {
         limpiar_pantalla();
-        cout << "Que dato desea modificar?" << endl;
+        cout << "Qué dato desea modificar?" << endl;
         cout << "1. Nombre" << endl;
         cout << "2. Apellidos" << endl;
-        cout << "3. Direccion" << endl;
+        cout << "3. Dirección" << endl;
         cout << "4. Salir" << endl;
         cout << "Opcion: ";
         limpiar_buffer_STDIN();
@@ -530,7 +535,9 @@ static void modificar_datos_pacientes(Lista *&_pacientes)
             do
             {
                 limpiar_pantalla();
-                cout << "Direccion del paciente: ";
+                cout << "Dirección del paciente \n Ejemplo: " << endl;
+                cout << "Calle Alameda #123 Colonia San Francisco, Cuauhtémoc, Ciudad de México" << endl;
+                cout << "Ingrese la nueva dirección: ";
                 limpiar_buffer_STDIN();
                 getline(cin, direccion);
 
@@ -555,7 +562,7 @@ static void modificar_datos_pacientes(Lista *&_pacientes)
 
 static void dar_baja_paciente( Lista *&_pacientes )
 {
-    regex patron_nombres("([a-zA-Z]+)");
+    regex patron_nombres("([a-zA-ZÁ-Ý\u00f1\u00d1]+)");
     string nombre_paciente;
     bool expresion_valida;
     const int bandera_nombre = 1;
@@ -582,10 +589,12 @@ static void dar_baja_paciente( Lista *&_pacientes )
             auxiliar = auxiliar->getSiguiente();
 
         _pacientes->eliminar_nodo_paciente( _pacientes, auxiliar->nombre );
+
+        cout << "El paciente ha sido dado de baja exitosamente!" << endl;
     }
     else
 
-        cout << "No se encontro el paciente con ese nombre, OPERACION CANCELADA . . . ." << endl;
+        cout << "No se encontro el paciente con ese nombre, OPERACIÓN CANCELADA . . . ." << endl;
 
 }
 
@@ -622,7 +631,7 @@ static bool comprobar_existencia_paciente( Lista *&_pacientes, string *_nombre_p
 
 static void pagar_adeudo( Lista *&_pacientes )
 {
-    regex patron_nombres("([a-zA-Z]+)");
+    regex patron_nombres("([a-zA-ZÁ-Ý\u00f1\u00d1]+)");
     string nombre_paciente;
     bool expresion_valida;
     const int bandera_nombre = 1;
