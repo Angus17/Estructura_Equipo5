@@ -32,9 +32,9 @@ class Lista
         string nombre;
         string apellidos;
 
-        Lista(string _nombre = "", string _apellidos = "", long int _codigo = 0L, string _direccion = "", double _adeudo = 0.0L,  Lista *_siguiente = nullptr)
-        : nombre(_nombre), apellidos(_apellidos), codigo(_codigo), direccion(_direccion), adeudo(_adeudo), siguiente(_siguiente)
-        {};
+        Lista(string _nombre = "", string _apellidos = "", long int _codigo = 0L, string _direccion = "", string _status = "",double _adeudo = 0.0L,  Lista *_siguiente = nullptr)
+        : nombre(_nombre), apellidos(_apellidos), codigo(_codigo), direccion(_direccion), status(_status), adeudo(_adeudo), siguiente(_siguiente)
+        {}; // Constructor de objetos
 
     // ================================================================ SETTERS Y GETTERS ================================================================
         long int getCodigo() const
@@ -80,9 +80,9 @@ class Lista
         // ================================================================================================================================
 
 
-        void insertar_nodo_paciente(Lista *&pacientes, string &nombre, string &apellidos, int codigo, string &direccion, double adeudo)
+        void insertar_nodo_paciente(Lista *&pacientes, string &nombre, string &apellidos, int codigo, string &direccion, string &status, double adeudo)
         {
-            Lista *nuevo_nodo_paciente = new Lista( nombre, apellidos, codigo, direccion, adeudo); // Se crea un nuevo objeto
+            Lista *nuevo_nodo_paciente = new Lista( nombre, apellidos, codigo, direccion, status, adeudo); // Se crea un nuevo objeto
 
             if (pacientes == nullptr) // Si la lista está vacía
 
@@ -93,17 +93,38 @@ class Lista
                 Lista *auxiliar = pacientes;
 
                 while (auxiliar->siguiente != nullptr)
-                {
+
                     auxiliar = auxiliar->siguiente;
-                }
 
                 auxiliar->siguiente = nuevo_nodo_paciente;
             }
         }
 
-        void eliminar_nodo_paciente(Lista *_head)
+        void mostrar_datos_paciente(Lista *pacientes)
         {
-            Lista *auxiliar = _head;
+            Lista *auxiliar = pacientes;
+
+            cout << "================================================" << endl;
+            while (auxiliar != nullptr)
+            {
+                cout << "\nNombre: " << auxiliar->nombre << endl;
+                cout << "\nApellidos: " << auxiliar->apellidos << endl;
+                cout << "\nCódigo: " << auxiliar->codigo << endl;
+                cout << "\nDirección: " << auxiliar->direccion << endl;
+                cout << "\nAdeudo: $" << auxiliar->adeudo << endl;
+                cout << "\nStatus: " << auxiliar->status << endl;
+                cout << "================================================" << endl;
+
+                auxiliar =  auxiliar->siguiente;
+            }
+            
+
+
+        }
+
+        void eliminar_nodo_paciente(Lista *pacientes)
+        {
+            Lista *auxiliar = pacientes;
 
             while (auxiliar != nullptr)
             {
@@ -114,12 +135,12 @@ class Lista
     private:
         long int codigo;
         string direccion;
+        string status;
         double adeudo;
         Lista *siguiente;
 };
 
 static void dar_alta_pacientes(Lista *&);
-static void mostrar_pacientes(Lista *&);
 static void modificar_datos_pacientes(Lista *&);
 static void pagar_adeudo(Lista *&);
 static bool verificar_codigo(Lista *&,  long int );
@@ -181,15 +202,13 @@ int main()
             case 3:
 
                 if ( lista_pacientes != nullptr )
-                {
-                    mostrar_pacientes( lista_pacientes );
-                }
+
+                    lista_pacientes->mostrar_datos_paciente( lista_pacientes );
+
                 else
 
                     cout << "No hay pacientes registrados en el hospital. . . ." << endl;
 
-                
-                
 
             break;
 
@@ -202,7 +221,7 @@ int main()
             case 6:
                 limpiar_pantalla();
                 cout << "Saliendo del programa. . . ." << endl;
-                milliseconds(2000);
+                milliseconds(2500);
             break;
         }
 
@@ -215,35 +234,13 @@ int main()
     return EXIT_SUCCESS;
 }
 
-static void limpiar_buffer_STDIN()
-{
-    #if defined(_WIN32) || defined(_WIN64)
-        rewind(stdin);
-    #elif defined(unix)
-        __fpurge(stdin);
-    #endif
-
-
-}
-
-static void limpiar_pantalla()
-{
-    #if defined(_WIN32) || defined(_WIN64)
-        system("cls");
-    #elif defined(unix)
-        system("clear");
-    #endif
-
-
-}
-
 static void dar_alta_pacientes(Lista *&_pacientes)
 {
     regex patron_direccion("Calle ([a-zA-Z. ]+) #([0-9]{1,4}) Colonia ([a-zA-Z ]+), ([A-Za-z ]+), ([A-Za-z ]+)");
     regex patron_nombres("([a-zA-Z]+)");
-    regex patron_apellidos("([a-zA-Z]+) ?([a-zA-Z]+)");
+    regex patron_apellidos("([a-zA-Z]+)? ([a-zA-Z]+)");
 
-    string nombre, apellidos, direccion;
+    string nombre, apellidos, direccion, status;
     long int codigo;
     double adeudo;
     bool expresion_valida, codigo_valido = true;
@@ -335,13 +332,9 @@ static void dar_alta_pacientes(Lista *&_pacientes)
         }
     } while (adeudo <= 0);
 
-    _pacientes->insertar_nodo_paciente(_pacientes, nombre, apellidos, codigo, direccion, adeudo);
-}
+    status = "Activo";
 
-static void mostrar_pacientes(Lista *&_pacientes)
-{
-
-
+    _pacientes->insertar_nodo_paciente(_pacientes, nombre, apellidos, codigo, direccion, status, adeudo);
 }
 
 static void modificar_datos_pacientes(Lista *&_pacientes)
@@ -350,13 +343,7 @@ static void modificar_datos_pacientes(Lista *&_pacientes)
 
 }
 
-static void pagar_adeudo(Lista *&_pacientes)
-{
-
-
-}
-
-static bool verificar_codigo(Lista *&_pacientes, long _codigo_recibido)
+static bool verificar_codigo(Lista *&_pacientes, long int _codigo_recibido)
 {
     Lista *auxiliar = _pacientes;
 
@@ -374,6 +361,29 @@ static bool verificar_codigo(Lista *&_pacientes, long _codigo_recibido)
 
     return true;
 }
+
+static void limpiar_buffer_STDIN()
+{
+    #if defined(_WIN32) || defined(_WIN64)
+        rewind(stdin);
+    #elif defined(unix)
+        __fpurge(stdin);
+    #endif
+
+
+}
+
+static void limpiar_pantalla()
+{
+    #if defined(_WIN32) || defined(_WIN64)
+        system("cls");
+    #elif defined(unix)
+        system("clear");
+    #endif
+
+
+}
+
 
 static void pausar_terminal()
 {
