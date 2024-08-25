@@ -5,7 +5,7 @@
 
     - Diego Leonardo Alejo Cantu 2013810
     - Axel Gabriel Gutierrez Ruano 2063628
-    - Diego Alonso Villanueva Garcia
+    - Diego Alonso Villanueva Garcia 2054599
 
     NOTA: Se le adjunta tambien el codigo ejecutable, ya que el codigo es incapaz de compilar en DEV-C++
 
@@ -34,8 +34,8 @@ class Lista
         string nombre;
         string apellidos;
 
-        Lista(string _nombre = "", string _apellidos = "", long int _codigo = 0L, string _direccion = "", string _status = "",double _adeudo = 0.0L,  Lista *_siguiente = nullptr)
-        : nombre(_nombre), apellidos(_apellidos), codigo(_codigo), direccion(_direccion), status(_status), adeudo(_adeudo), siguiente(_siguiente)
+        Lista(string _nombre = "", string _apellidos = "", long int _codigo = 0L, string _direccion = "", string _status = "", string _telefono = "", double _adeudo = 0.0L,  Lista *_siguiente = nullptr)
+        : nombre(_nombre), apellidos(_apellidos), codigo(_codigo), direccion(_direccion), status(_status), telefono(_telefono), adeudo(_adeudo), siguiente(_siguiente)
         {}; // Constructor de objetos
 
     // ================================================================ SETTERS Y GETTERS ================================================================
@@ -92,9 +92,9 @@ class Lista
         // ================================================================================================================================
 
 
-        void insertar_nodo_paciente(Lista *&pacientes, string &nombre, string &apellidos, int codigo, string &direccion, string &status, double adeudo)
+        void insertar_nodo_paciente(Lista *&pacientes, string &nombre, string &apellidos, int codigo, string &direccion, string &status, string &telefono, double adeudo)
         {
-            Lista *nuevo_nodo_paciente = new Lista( nombre, apellidos, codigo, direccion, status, adeudo); // Se crea un nuevo objeto
+            Lista *nuevo_nodo_paciente = new Lista( nombre, apellidos, codigo, direccion, status, telefono, adeudo); // Se crea un nuevo objeto
 
             if (pacientes == nullptr) // Si la lista está vacía
 
@@ -122,7 +122,6 @@ class Lista
                 cout << "\nNombre: " << auxiliar->nombre << endl;
                 cout << "\nApellidos: " << auxiliar->apellidos << endl;
                 cout << "\nCódigo: " << auxiliar->codigo << endl;
-                cout << "\nDirección: " << auxiliar->direccion << endl;
                 cout << "\nAdeudo: $" << auxiliar->adeudo << endl;
                 cout << "\nStatus: " << auxiliar->status << endl;
                 cout << "================================================" << endl;
@@ -162,6 +161,12 @@ class Lista
 
                     break;
 
+                case 4:
+
+                    auxiliar->telefono = dato_nuevo;
+
+                break;
+
             }
 
 
@@ -195,6 +200,7 @@ class Lista
         long int codigo;
         string direccion;
         string status;
+        string telefono;
         double adeudo;
         Lista *siguiente;
 };
@@ -338,8 +344,9 @@ static void dar_alta_pacientes(Lista *&_pacientes)
     regex patron_direccion("Calle ([a-zA-ZÁ-Ý\u00f1\u00d1. ]+) #([0-9]{1,4}) Colonia ([a-zA-ZÁ-Ý\u00f1\u00d1 ]+), ([A-Za-zÁ-Ý\u00f1\u00d1 ]+), ([A-Za-zÁ-Ý\u00f1\u00d1 ]+)");
     regex patron_nombres("([a-zA-ZÁ-Ý\u00f1\u00d1]+)");
     regex patron_apellidos("([a-zA-ZÁ-Ý\u00f1\u00d1]+)? ([a-zA-ZÁ-Ý\u00f1\u00d1]+)");
+    regex patron_telefono(R"(\d{2}-\d{4}-\d{4})");
 
-    string nombre, apellidos, direccion, status;
+    string nombre, apellidos, direccion, status, telefono;
     long int codigo;
     double adeudo;
     bool expresion_valida, codigo_valido = true;
@@ -354,10 +361,9 @@ static void dar_alta_pacientes(Lista *&_pacientes)
         expresion_valida = regex_search(nombre, patron_nombres);
 
         if ( !expresion_valida )
-        {
+
             mostrar_mensaje_error();
-            pausar_terminal();
-        }
+
 
     } while (!expresion_valida);
 
@@ -371,10 +377,9 @@ static void dar_alta_pacientes(Lista *&_pacientes)
         expresion_valida = regex_search(apellidos, patron_apellidos);
 
         if ( !expresion_valida )
-        {
+
             mostrar_mensaje_error();
-            pausar_terminal();
-        }
+
 
     } while (!expresion_valida);
 
@@ -390,10 +395,8 @@ static void dar_alta_pacientes(Lista *&_pacientes)
         expresion_valida = regex_search(direccion, patron_direccion);
 
         if ( !expresion_valida )
-        {
+
             mostrar_mensaje_error();
-            pausar_terminal();
-        }
 
     } while (!expresion_valida);
 
@@ -407,10 +410,9 @@ static void dar_alta_pacientes(Lista *&_pacientes)
         codigo_valido = verificar_codigo(_pacientes, codigo);
 
         if (!codigo_valido)
-        {
+
             mostrar_mensaje_error();
-            pausar_terminal();
-        }
+
         else
         {
             cout << "Código del paciente: " << codigo << " generado exitosamente!" << endl;
@@ -427,15 +429,29 @@ static void dar_alta_pacientes(Lista *&_pacientes)
         cin >> adeudo;
 
         if (adeudo <= 0)
-        {
+
             mostrar_mensaje_error();
-            pausar_terminal();
-        }
+
     } while (adeudo <= 0);
+
+    do
+    {
+        limpiar_pantalla();
+        cout << "Teléfono del paciente (Ejemplo: 81-1234-5678): ";
+        limpiar_buffer_STDIN();
+        getline(cin, telefono);
+
+        expresion_valida = regex_search(telefono, patron_telefono);
+        
+        if (!expresion_valida )
+
+            mostrar_mensaje_error();
+
+    } while( !expresion_valida );
 
     status = "Activo";
 
-    _pacientes->insertar_nodo_paciente(_pacientes, nombre, apellidos, codigo, direccion, status, adeudo);
+    _pacientes->insertar_nodo_paciente(_pacientes, nombre, apellidos, codigo, direccion, status, telefono, adeudo);
     
     limpiar_pantalla();
     cout << "Paciente dado de alta exitosamente!" << endl;
@@ -446,8 +462,9 @@ static void modificar_datos_pacientes(Lista *&_pacientes)
     regex patron_direccion("Calle ([a-zA-ZÁ-Ý\u00f1\u00d1. ]+) #([0-9]{1,4}) Colonia ([a-zA-ZÁ-Ý\u00f1\u00d1 ]+), ([A-Za-zÁ-Ý\u00f1\u00d1 ]+), ([A-Za-zÁ-Ý\u00f1\u00d1 ]+)");
     regex patron_nombres("([a-zA-ZÁ-Ý\u00f1\u00d1]+)");
     regex patron_apellidos("([a-zA-ZÁ-Ý\u00f1\u00d1]+)? ([a-zA-ZÁ-Ý\u00f1\u00d1]+)");
+    regex patron_telefono(R"(\d{2}-\d{4}-\d{4})");
 
-    string nombre, apellidos, direccion;
+    string nombre, apellidos, direccion, telefono;
     bool expresion_valida, paciente_existente;
 
     int opcion_dato;
@@ -478,16 +495,17 @@ static void modificar_datos_pacientes(Lista *&_pacientes)
         cout << "1. Nombre" << endl;
         cout << "2. Apellidos" << endl;
         cout << "3. Dirección" << endl;
-        cout << "4. Salir" << endl;
+        cout << "4. Teléfono" << endl;
+        cout << "5. Salir" << endl;
         cout << "Opcion: ";
         limpiar_buffer_STDIN();
         cin >> opcion_dato;
 
-        if ( opcion_dato < 1 || opcion_dato > 4 )
+        if ( opcion_dato < 1 || opcion_dato > 5 )
 
             mostrar_mensaje_error();
 
-    } while ( opcion_dato < 1 || opcion_dato > 4 );
+    } while ( opcion_dato < 1 || opcion_dato > 5 );
 
     switch ( opcion_dato ) 
     {
@@ -552,9 +570,30 @@ static void modificar_datos_pacientes(Lista *&_pacientes)
             _pacientes->modificar_nodo_paciente(_pacientes, direccion, opcion_dato, codigo_paciente);
             
         break;
+
+        case 4:
+            do
+            {
+                limpiar_pantalla();
+                cout << "Teléfono del paciente (Ejemplo: 81-1234-5678): ";
+                limpiar_buffer_STDIN();
+                getline(cin, telefono);
+            
+                expresion_valida = regex_search(telefono, patron_telefono);
+                
+                if ( !expresion_valida )
+                
+                    mostrar_mensaje_error();
+                    
+            } while ( !expresion_valida );
+
+            _pacientes->modificar_nodo_paciente(_pacientes, telefono, opcion_dato, codigo_paciente);
+            
+        break;
+
     }
 
-    if ( opcion_dato != 4 )
+    if ( opcion_dato != 5 )
 
         cout << "Los cambios se han guardado correctamente!" << endl;
 
@@ -751,7 +790,7 @@ static void limpiar_pantalla()
 static void pausar_terminal()
 {
     #if defined(_WIN32) || defined(_WIN64)
-        system("pause")
+        system("pause");
     #elif defined(unix)
         cout << "Presione ENTER para continuar. . . ." << endl;
         limpiar_buffer_STDIN();
