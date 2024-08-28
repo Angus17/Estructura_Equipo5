@@ -3,6 +3,7 @@
         "*.embeddedhtml": "html",
         ".fantomasignore": "ignore",
         "ctime": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "ostream": "cpp"
     }
 }
